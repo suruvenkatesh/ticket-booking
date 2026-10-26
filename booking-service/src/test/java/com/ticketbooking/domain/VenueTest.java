@@ -23,4 +23,13 @@ public class VenueTest {
     void venueNameCannotBeBlank() {
         assertThatThrownBy(() -> new Venue(" ", Set.of(new Seat("A", 1)))).isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void venueSeatsCannotBeChanged() {
+        Set<Seat> seats = new HashSet<>();
+        seats.add(new Seat("A", 1));
+        Venue venue = new Venue("Hall 1", seats);
+        assertThatThrownBy(() -> venue.seats().add(new Seat("A", 2))).isInstanceOf(UnsupportedOperationException.class);
+    }
+
 }
