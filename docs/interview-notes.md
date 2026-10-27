@@ -33,3 +33,18 @@ Valid: equal objects still get equal hashCodes, so the contract holds and the se
 
 ### What does a record generate for you?
 For `record Seat(String row, int number)`, Java generates `private final` fields, a constructor, accessors `row()` and `number()` (no `get` prefix), and `equals()`, `hashCode()` and `toString()` based on all the fields. So a record has value equality out of the box: two seats with the same row and number are equal.
+
+## Week 1: Venue
+
+### Why did we use a `Set` for the venue's seats, and not a `List`?
+Two reasons. **No duplicates:** a hall can't have seat A1 twice, and a `Set` doesn't allow duplicates (a `List` does). **Fast to check:** `contains()` jumps straight to one drawer using `hashCode()`, so "does this venue have seat A1?" is O(1) on average, while a `List` checks every seat (O(n)).
+
+### What does `Set.copyOf` do?
+It makes a locked copy of the set. Two effects:
+- **Own copy:** changing the original set later doesn't change the venue.
+- **Locked:** nobody can add or remove seats through `venue.seats()`. Trying it throws `UnsupportedOperationException`.
+
+This makes `Venue` fully immutable: without it, the record would be only shallowly immutable, because the field couldn't change but the set inside could. To "remodel" a venue, you create a new `Venue` instead of changing the old one.
+
+### Why does `hasSeat` return `false` instead of throwing an error?
+Because "do you have this seat?" is a normal yes/no question, and "no" is a normal answer, not a mistake. Exceptions are for wrong input, like a blank venue name. A method named `has...` or `is...` should just return `true` or `false`.
