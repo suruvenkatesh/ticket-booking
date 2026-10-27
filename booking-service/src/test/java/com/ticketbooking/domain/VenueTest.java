@@ -32,4 +32,13 @@ public class VenueTest {
         assertThatThrownBy(() -> venue.seats().add(new Seat("A", 2))).isInstanceOf(UnsupportedOperationException.class);
     }
 
+    @Test
+    void checkSeatExists() {
+        Set<Seat> seats = new HashSet<>();
+        seats.add(new Seat("A", 1));
+        Venue venue = new Venue("Hall 1", seats);
+        assertThat(venue.hasSeat(new Seat("A", 1))).isTrue();
+        assertThat(venue.hasSeat(new Seat("Z", 99))).isFalse();
+    }
+
 }
