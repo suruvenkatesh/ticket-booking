@@ -1,6 +1,7 @@
 package com.ticketbooking.domain;
 
 import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -8,14 +9,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class EventTest {
 
     @Test
-    void testStatusOf() {
-        Venue venue = new Venue("Test Venue", new HashSet<>() {
-            {
-                add(new Seat("A1", 1));
-            }
-        });
+    void newEventStartsWithAllSeatsAvailable() {
+        Venue venue = new Venue("Test Venue", Set.of(new Seat("A", 1)));
         Event event = new Event("Test Event", venue);
-        // Seat seat = venue.seats()[0];
-        assertThat(event.statusOf(new Seat("A1", 1))).isEqualTo(SeatStatus.AVAILABLE);
+
+        assertThat(event.statusOf(new Seat("A", 1))).isEqualTo(SeatStatus.AVAILABLE);
     }
 }
