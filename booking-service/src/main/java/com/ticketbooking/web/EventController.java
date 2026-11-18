@@ -10,9 +10,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class EventController {
 
     // GET http://localhost:8080/api/events calls this method.
-    // The names are hard-coded for now; a later step reads real events from storage.
+    // The events are hard-coded for now; a later step reads real events from storage.
     @GetMapping("/api/events")
-    public List<String> findAll() {
-        return List.of("Rock Night", "Jazz Evening");
+    public List<EventResponse> findAll() {
+        return List.of(
+                new EventResponse("Rock Night", "City Hall"),
+                new EventResponse("Jazz Evening", "Blue Room"));
     }
 }
