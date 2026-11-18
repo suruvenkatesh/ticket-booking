@@ -16,6 +16,8 @@ import com.ticketbooking.domain.Seat;
 import com.ticketbooking.domain.Venue;
 import com.ticketbooking.repository.EventRepository;
 
+import jakarta.validation.Valid;
+
 // Answers web requests. Whatever a method returns is sent back as JSON.
 @RestController
 public class EventController {
@@ -47,9 +49,10 @@ public class EventController {
 
     // POST http://localhost:8080/api/events with JSON like {"name": "Comedy Night"}.
     // @RequestBody: Jackson turns the JSON into a CreateEventRequest.
+    // @Valid: Spring checks the request's rules (@NotBlank) first. If one fails, it replies 400 and this method never runs.
     // ResponseEntity lets us pick the status code: 201 Created instead of the usual 200 OK.
     @PostMapping("/api/events")
-    public ResponseEntity<EventResponse> create(@RequestBody CreateEventRequest request) {
+    public ResponseEntity<EventResponse> create(@Valid @RequestBody CreateEventRequest request) {
         Event event = eventRepository.save(new Event(request.name(), cityHall));
         return ResponseEntity.status(HttpStatus.CREATED).body(EventResponse.from(event));
     }
