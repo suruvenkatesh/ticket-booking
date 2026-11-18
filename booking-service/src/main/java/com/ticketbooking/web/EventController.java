@@ -16,11 +16,13 @@ import com.ticketbooking.repository.EventRepository;
 @RestController
 public class EventController {
 
-    // The controller makes its own repository with "new" for now. The next step lets Spring do it.
-    private final EventRepository eventRepository = new EventRepository();
+    private final EventRepository eventRepository;
 
-    // Runs once, when the controller is created. Puts two demo events into storage.
-    public EventController() {
+    // Constructor injection: the controller asks for an EventRepository here,
+    // and Spring passes in its one shared EventRepository bean. No "new" needed.
+    // Runs once, when Spring creates the controller. Also puts two demo events into storage.
+    public EventController(EventRepository eventRepository) {
+        this.eventRepository = eventRepository;
         eventRepository.save(new Event("Rock Night",
                 new Venue("City Hall", Set.of(new Seat("A", 1), new Seat("A", 2)))));
         eventRepository.save(new Event("Jazz Evening",

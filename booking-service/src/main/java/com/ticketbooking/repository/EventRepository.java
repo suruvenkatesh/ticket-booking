@@ -5,10 +5,14 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.stereotype.Repository;
+
 import com.ticketbooking.domain.Event;
 
 // The repository pattern: this class's only job is storing and finding events.
 // In memory for now; a real database replaces it in stage 3.
+// @Repository: at startup, Spring creates one EventRepository (a bean) and hands it to every class that asks.
+@Repository
 public class EventRepository {
 
     // Each request runs on its own thread, and a ConcurrentHashMap stays safe
