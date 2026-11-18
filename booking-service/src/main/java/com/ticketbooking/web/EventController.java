@@ -10,22 +10,28 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ticketbooking.domain.Event;
 import com.ticketbooking.domain.Seat;
 import com.ticketbooking.domain.Venue;
+import com.ticketbooking.repository.EventRepository;
 
 // Answers web requests. Whatever a method returns is sent back as JSON.
 @RestController
 public class EventController {
 
-    // Created once when the controller is created, so the ids stay the same between requests.
-    // Hard-coded for now; a later step moves events into storage.
-    private final List<Event> events = List.of(
-            new Event("Rock Night", new Venue("City Hall", Set.of(new Seat("A", 1), new Seat("A", 2)))),
-            new Event("Jazz Evening", new Venue("Blue Room", Set.of(new Seat("A", 1)))));
+    // The controller makes its own repository with "new" for now. The next step lets Spring do it.
+    private final EventRepository eventRepository = new EventRepository();
+
+    // Runs once, when the controller is created. Puts two demo events into storage.
+    public EventController() {
+        eventRepository.save(new Event("Rock Night",
+                new Venue("City Hall", Set.of(new Seat("A", 1), new Seat("A", 2)))));
+        eventRepository.save(new Event("Jazz Evening",
+                new Venue("Blue Room", Set.of(new Seat("A", 1)))));
+    }
 
     // GET http://localhost:8080/api/events calls this method.
     @GetMapping("/api/events")
     public List<EventResponse> findAll() {
         List<EventResponse> responses = new ArrayList<>();
-        for (Event event : events) {
+        for (Event event : eventRepository.findAll()) {
             responses.add(EventResponse.from(event));
         }
         return responses;
