@@ -2,8 +2,11 @@ package com.ticketbooking.domain;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class Event {
+    // A random id, made once when the event is created.
+    private final UUID id = UUID.randomUUID();
     private final String name;
     private final Venue venue;
     private final Map<Seat, SeatStatus> seatStatuses = new HashMap<>();
@@ -14,6 +17,18 @@ public class Event {
         for (Seat seat : venue.seats()) {
             seatStatuses.put(seat, SeatStatus.AVAILABLE);
         }
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Venue getVenue() {
+        return venue;
     }
 
     public SeatStatus statusOf(Seat seat) {
