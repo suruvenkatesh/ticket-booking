@@ -25,6 +25,13 @@
     </properties>
 
     <dependencies>
+        <!-- A starter: one dependency that brings everything a web app needs:
+             Spring MVC, a built-in Tomcat web server, and Jackson for JSON -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+
         <!-- scope "test": only on the classpath for src/test, never shipped with the app -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
