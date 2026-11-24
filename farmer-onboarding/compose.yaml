@@ -1,0 +1,26 @@
+# Docker Compose: the containers our services need on a developer's laptop.
+# Start all:  docker compose up -d     Stop all:  docker compose down
+# (Run these in the farmer-onboarding folder.)
+services:
+
+  # PostgreSQL database for onboarding-service.
+  postgres:
+    # The image: a ready-made PostgreSQL 17 package (the small "alpine" Linux variant).
+    image: postgres:17-alpine
+    # Settings the image reads when the container starts for the first time.
+    # Laptop-only password; real secrets get proper handling in a later step.
+    environment:
+      POSTGRES_DB: onboarding
+      POSTGRES_USER: onboarding
+      POSTGRES_PASSWORD: onboarding
+    # Port mapping "mac-address:mac-port:container-port".
+    # 127.0.0.1 means only this Mac can connect, not other machines on the network.
+    ports:
+      - "127.0.0.1:5432:5432"
+    # The volume keeps the database files, so data survives when the container is removed.
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+# Named volumes, managed by Docker.
+volumes:
+  postgres-data:
