@@ -20,6 +20,13 @@ spring:
     # not at the end of the web request. Removes the startup warning.
     open-in-view: false
 
+logging:
+  level:
+    # Print every SQL statement Hibernate runs, to see what it does for us.
+    # We don't log the values that go into the SQL (org.hibernate.orm.jdbc.bind):
+    # the logs would then contain Aadhaar numbers.
+    org.hibernate.SQL: debug
+
 # Each microservice gets its own port, so they can all run on one machine.
 server:
   port: 8081

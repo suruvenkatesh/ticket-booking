@@ -22,7 +22,12 @@ public class FarmerApplication {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Field names become column names: farmerName -> farmer_name.
+    // The farmer's 12-digit Aadhaar number, known from the start (New Request step 1).
+    // Sensitive: the API only ever shows it masked.
+    // Field names become column names: aadhaarNumber -> aadhaar_number.
+    private String aadhaarNumber;
+
+    // Empty at first: filled in later (Personal section, New Request step 2).
     private String farmerName;
 
     private String mobileNumber;
@@ -40,17 +45,20 @@ public class FarmerApplication {
     protected FarmerApplication() {
     }
 
-    // Every new application starts as a DRAFT, created now.
-    // No id here: the database gives it one when the row is saved.
-    public FarmerApplication(String farmerName, String mobileNumber) {
-        this.farmerName = farmerName;
-        this.mobileNumber = mobileNumber;
+    // An application is created once the farmer's Aadhaar is verified.
+    // It starts as a DRAFT, created now. No id here: the database gives it one when the row is saved.
+    public FarmerApplication(String aadhaarNumber) {
+        this.aadhaarNumber = aadhaarNumber;
         this.status = ApplicationStatus.DRAFT;
         this.createdAt = Instant.now();
     }
 
     public Long getId() {
         return id;
+    }
+
+    public String getAadhaarNumber() {
+        return aadhaarNumber;
     }
 
     public String getFarmerName() {

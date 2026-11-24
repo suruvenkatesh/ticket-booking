@@ -21,6 +21,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
+        <!-- Bean Validation (Hibernate Validator): @NotNull, @Pattern and @Valid on requests -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
         <!-- Database access: Hibernate (JPA), Spring Data JPA, JDBC and the HikariCP connection pool -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

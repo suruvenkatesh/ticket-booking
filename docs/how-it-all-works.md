@@ -138,6 +138,13 @@ Think of a phone call:
 - **JPA's rules for an entity:** it needs a constructor with no arguments (it may be `protected`), and the class can't be `final`. That's why an entity can't be a record.
 - **`spring.jpa.hibernate.ddl-auto: validate`:** at startup, Hibernate checks every entity against its table and refuses to start on a mismatch, for example `wrong column type ... found [varchar], but expecting [smallint]`. It never changes the tables, because Flyway owns them.
 - **`spring.jpa.open-in-view: false`:** the database session closes when the service layer is done, not at the end of the web request.
+- **Our first Spring Data repository:** `FarmerApplicationRepository extends JpaRepository<FarmerApplication, Long>`.
+  - It's only an interface. At startup Spring Data builds a **proxy** for it, backed by its own class `SimpleJpaRepository`. The log says `Found 1 JPA repository interface`. No `@Repository` annotation is needed.
+  - `save()` runs in its own transaction. If the id is `null`, the entity is new, so it calls JPA's `persist` (an INSERT). Otherwise it calls `merge` (an update). A stack trace shows the whole chain: `$Proxy.save` → `TransactionInterceptor` → `SimpleJpaRepository.save` → `SessionImpl.persist`.
+  - Database errors come back as **Spring's own exceptions**: a duplicate key becomes `DataIntegrityViolationException`, not PostgreSQL's `PSQLException`. So our code doesn't depend on one database's error classes.
+- **Seeing the SQL:** `logging.level.org.hibernate.SQL: debug` prints each statement Hibernate runs, like `insert into farmer_application (aadhaar_number,created_at,...) values (?,?,?,?,?)`.
+  - The `?` marks are placeholders. The values are sent **separately** from the SQL (a **prepared statement**), so user input can never be run as SQL. That's the standard protection against **SQL injection**.
+  - We don't log the values (`org.hibernate.orm.jdbc.bind`): they include Aadhaar numbers.
 
 ### 8. Flyway: version control for the database structure
 - **The problem:** the code changes over time (new table, new column), and the database structure must change with it, the same way, on every laptop and on the server.
