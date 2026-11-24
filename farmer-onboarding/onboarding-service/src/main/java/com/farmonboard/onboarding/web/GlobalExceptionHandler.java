@@ -4,13 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import com.farmonboard.onboarding.service.ApplicationNotFoundException;
 import com.farmonboard.onboarding.service.DuplicateAadhaarException;
 
 // Turns exceptions from any controller into proper HTTP replies, all in one place.
@@ -21,6 +24,27 @@ import com.farmonboard.onboarding.service.DuplicateAadhaarException;
 // Rule for every handler here: never put personal data (like an Aadhaar number) in a reply.
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    // There's no application with the requested id.
+    @ExceptionHandler(ApplicationNotFoundException.class)
+    public ProblemDetail handleNotFound(ApplicationNotFoundException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    // ?sort= named a field that doesn't exist, like ?sort=colour. Without this, a 500.
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ProblemDetail handleUnknownSortField(PropertyReferenceException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
+                "Can't sort by '" + e.getPropertyName() + "'");
+    }
+
+    // A URL part has the wrong type, like /api/applications/abc where a number is expected.
+    // We name the part, not the value someone typed.
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ProblemDetail handleTypeMismatch(MethodArgumentTypeMismatchException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
+                "Invalid value for '" + e.getName() + "'");
+    }
 
     // Our own check found an application for this Aadhaar.
     @ExceptionHandler(DuplicateAadhaarException.class)
