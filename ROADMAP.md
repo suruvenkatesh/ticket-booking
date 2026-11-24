@@ -5,15 +5,37 @@ Topics are in the order interviewers ask about them most. Each stage takes a few
 
 **Stack:** Java 21 · Spring Boot 4.1.x · Maven · PostgreSQL · pgAdmin · Redis · Kafka · Docker · Jenkins · GitHub Actions · GitLab CI · SonarQube · Kubernetes · Helm · GCP · Firebase · AWS · Angular
 
-**How we work on each topic:**
-1. Claude explains the concept in simple words.
-2. Claude writes the code in the project. You run it and change one small thing to see it work.
-3. Claude asks 5 likely interview questions. You answer, and Claude corrects.
-4. The answers go into `docs/interview-notes.md`.
+**How we work on each step:**
+1. Claude plans the step and lists everything new in it. You say OK.
+2. Claude writes the code. You run the commands and paste the output.
+3. Claude explains the output and every new concept, then commits.
+4. At the end of each topic, the interview questions and model answers go into `docs/interview-notes.md`. You read them out loud. Quizzes happen only when you ask.
 
 **Every session:** a 15–20 minute coding drill (Java, streams or SQL), solved without help. Tasks are tracked on a JIRA board.
 
 Focus tags: **[deep]** = learn properly · **[refresh]** = fix gaps · **[quick]** = already solid.
+
+---
+
+## Current build: the farmer onboarding backend (`farmer-onboarding/`)
+
+Ticket-booking is paused. The stages below still apply, practised on the farmer onboarding microservices. The build order was decided on 2026-11-24, at **full depth**: about 48 steps and 20–25 hours for blocks 1–9.
+
+Already in use: Maven, Spring Boot, PostgreSQL, Docker + Compose, Flyway, Hibernate/JPA (Spring Data), psql.
+
+| # | Tools | Feature | Steps |
+|---|---|---|---|
+| 1 | Worklist filters + interview notes | Worklist by status | 1 |
+| 2 | Docker image (Dockerfile) | onboarding-service as a container | 3 |
+| 3 | Spring Security + JWT + RBAC | `auth-service`: fake OTP login, roles, locked endpoints | 7 |
+| 4 | JPA relationships, `@Transactional`, indexes + `EXPLAIN` | The 4 sections; submit and approve with status history | 9 |
+| 5 | Kafka | "Application submitted" event → `notification-service` | 5 |
+| 6 | JUnit, Mockito, Testcontainers | Automatic tests | 3 |
+| 7 | Jenkins, SonarQube, nginx, HTTPS | Push → build, test, check → deploy to `play` | 7 |
+| 8 | API gateway, Redis, MinIO, Resilience4j | One front door, expiring OTPs, documents, safe calls to fakes | 8 |
+| 9 | k3s + Helm | All services on `play`, Kubernetes-style | 5 |
+| 10 | Prometheus + Grafana | Dashboards and alerts | later |
+| 11 | Angular + FCM | Admin screens and push notifications | later |
 
 ---
 
