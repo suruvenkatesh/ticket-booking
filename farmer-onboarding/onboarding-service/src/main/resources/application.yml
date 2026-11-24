@@ -11,6 +11,15 @@ spring:
     username: onboarding
     password: onboarding
 
+  jpa:
+    hibernate:
+      # Flyway owns the tables. Hibernate only checks at startup that our
+      # entities match them, and stops the app if they don't. It never changes them.
+      ddl-auto: validate
+    # Close the database session when the service layer is done,
+    # not at the end of the web request. Removes the startup warning.
+    open-in-view: false
+
 # Each microservice gets its own port, so they can all run on one machine.
 server:
   port: 8081

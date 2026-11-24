@@ -128,6 +128,14 @@ Think of a phone call:
 - **Hibernate** is the most popular **implementation** of JPA, the library that actually does the work.
 - **Spring Data JPA** goes one step further. You write only an interface, like `FarmerApplicationRepository`, and Spring writes the code behind `save`, `findById` and `findAll` for you.
 - **In our project:** it replaces the in-memory repository from ticket-booking. Because of the layers, the controller and service barely notice.
+- **Our first entity, `FarmerApplication`** (in the `domain` package):
+  - `@Entity` maps the class to a table, and `@Table(name = "farmer_application")` names it. `@Id` marks the primary key.
+  - Field names become column names automatically: `farmerName` becomes `farmer_name`.
+  - The status is an enum stored as text with `@Enumerated(EnumType.STRING)`. The JPA default, `ORDINAL`, stores 0, 1, 2..., which breaks if the list order ever changes.
+  - The JPA annotations come from `jakarta.persistence`. Before Jakarta EE (Spring Boot 2 and older), it was `javax.persistence`.
+- **JPA's rules for an entity:** it needs a constructor with no arguments (it may be `protected`), and the class can't be `final`. That's why an entity can't be a record.
+- **`spring.jpa.hibernate.ddl-auto: validate`:** at startup, Hibernate checks every entity against its table and refuses to start on a mismatch, for example `wrong column type ... found [varchar], but expecting [smallint]`. It never changes the tables, because Flyway owns them.
+- **`spring.jpa.open-in-view: false`:** the database session closes when the service layer is done, not at the end of the web request.
 
 ### 8. Flyway: version control for the database structure
 - **The problem:** the code changes over time (new table, new column), and the database structure must change with it, the same way, on every laptop and on the server.
