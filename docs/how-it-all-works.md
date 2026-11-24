@@ -145,6 +145,11 @@ Think of a phone call:
   - Every later run: `Schema "public" is up to date. No migration necessary.`
 - **Harmless warning:** `Could not transfer metadata ... flyway-community-db-support` (or `MavenFeed`) `... 401`. Flyway's build files list extra download sites that need a login. Maven skips them and uses Maven Central.
 - **Alternative you'll hear about:** Liquibase, which does the same job and also supports XML or YAML changelogs.
+- **Why not let Spring Boot or Hibernate create the tables?** Both can:
+  - Hibernate's `spring.jpa.hibernate.ddl-auto=update` builds tables from the Java classes. But it only **adds** things. It never renames or removes a column, and it can't move or fix data. It also leaves no record in Git.
+  - `create` and `create-drop` **delete all tables** at startup.
+  - Spring Boot's `schema.sql` runs the same script on every startup, so it can't change a table that already exists.
+  - They're fine for quick demos and tests. In company projects, Flyway (or Liquibase) owns the tables, and Hibernate is set to `validate`: it only checks that the classes match the tables.
 
 ---
 
