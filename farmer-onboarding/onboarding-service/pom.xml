@@ -21,5 +21,17 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
+        <!-- Database access: Hibernate (JPA), Spring Data JPA, JDBC and the HikariCP connection pool -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <!-- The PostgreSQL JDBC driver: the translator between JDBC and PostgreSQL.
+             scope "runtime": needed only when the app runs, not to compile our code -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
 </project>

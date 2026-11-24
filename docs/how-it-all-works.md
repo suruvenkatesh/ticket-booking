@@ -85,6 +85,11 @@ The rest of this page explains each box.
 ### 5. Docker Compose: starts several containers together
 - **What:** one file, `compose.yaml`, lists all the containers a project needs, with their settings.
 - **Why:** instead of typing a long `docker run ...` command for each tool, `docker compose up -d` starts everything, and `docker compose down` stops everything.
+- **The everyday commands** (run them in the folder that has `compose.yaml`):
+  - `docker compose up -d`: create and start the containers. `-d` means "in the background", so you get your terminal back.
+  - `docker compose ps`: list them and show if they're **Up**.
+  - `docker compose stop postgres` / `docker compose start postgres`: pause and resume one container. The container stays.
+  - `docker compose down`: stop **and remove** the containers. Named volumes stay, so the data survives.
 - **In our project:** `farmer-onboarding/compose.yaml` runs PostgreSQL on your laptop. Kafka, Redis and MinIO get added to it later. Compose is for **laptops and simple servers**. Big production setups use Kubernetes (Part 2).
 
 ### 6. JDBC, the driver, the datasource and the connection pool: how Java talks to a database
@@ -93,6 +98,12 @@ Think of a phone call:
 - The **driver** (the PostgreSQL JDBC driver) is the **translator**, turning JDBC calls into PostgreSQL's own language. Every database has its own driver.
 - The **datasource** settings are the **phone number and password**: the URL `jdbc:postgresql://localhost:5432/onboarding`, the username and the password, all in `application.yml`.
 - The **connection pool** (HikariCP) **keeps a few lines open** instead of dialling a new call for every request. Opening a database connection is slow, so reusing them makes the app much faster. Spring Boot sets this up automatically.
+- **How to check it works:** start the service and look in the log for:
+  - `HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection...`: the driver opened a real connection.
+  - `HikariPool-1 - Start completed.`: the pool is ready.
+  - Hibernate's `Database info:` block: it asked the database about itself (PostgreSQL 17.12) and picked the matching **dialect**.
+- **If the database is down, the service refuses to start.** Hibernate must ask the database its type and version, so it knows which SQL "dialect" to write. With no database, it can't, and Spring stops the whole app. This is **fail fast**: better to fail at startup than on a real user's request.
+- **Reading the error:** each layer wraps the error below it and adds its own message. Read the **last `Caused by:`**: that's the root cause. Here it was `java.net.ConnectException: Connection refused`, which means nothing was listening on port 5432.
 
 ### 7. JPA, Hibernate and Spring Data JPA: save Java objects without writing SQL
 - **The problem:** our code works with Java objects (`FarmerApplication`), but the database stores rows. Converting back and forth by hand means writing a lot of SQL.

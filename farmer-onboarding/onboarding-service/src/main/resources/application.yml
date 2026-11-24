@@ -3,6 +3,14 @@ spring:
   application:
     name: onboarding-service
 
+  # The datasource: where the database is and how to log in.
+  # Matches the PostgreSQL container in ../compose.yaml. Laptop-only password;
+  # real secrets come from environment variables in a later step.
+  datasource:
+    url: jdbc:postgresql://localhost:5432/onboarding
+    username: onboarding
+    password: onboarding
+
 # Each microservice gets its own port, so they can all run on one machine.
 server:
   port: 8081
