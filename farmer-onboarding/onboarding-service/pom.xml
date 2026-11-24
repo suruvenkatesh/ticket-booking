@@ -33,5 +33,16 @@
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <!-- Flyway: runs our numbered SQL scripts (src/main/resources/db/migration) at startup.
+             The starter brings Flyway itself plus Spring Boot's auto-setup for it -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+        </dependency>
+        <!-- Flyway's PostgreSQL add-on. Since Flyway 10, each database's support is a separate jar -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
     </dependencies>
 </project>

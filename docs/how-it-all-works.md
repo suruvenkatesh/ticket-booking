@@ -117,6 +117,18 @@ Think of a phone call:
 - **The problem:** the code changes over time (new table, new column), and the database structure must change with it, the same way, on every laptop and on the server.
 - **What Flyway does:** you write numbered SQL files, like `V1__create_farmer_application.sql` and `V2__add_bank_details.sql`. When the service starts, Flyway runs only the files that haven't run yet on that database, in order, and records which ones ran.
 - **Why MNCs use it:** database changes are reviewed in Git like code, and every environment ends up with exactly the same structure.
+- **In our project:**
+  - Two dependencies: `spring-boot-starter-flyway`, Spring Boot's automatic setup, and `flyway-database-postgresql`, Flyway's PostgreSQL add-on. Since Flyway 10, each database needs its own add-on.
+  - Scripts live in `src/main/resources/db/migration/`. The name pattern is `V1__create_farmer_application.sql`: `V`, then the version, then **two** underscores, then a description.
+  - Spring Boot runs Flyway at startup with the same datasource, **after** the connection pool starts and **before** Hibernate. The tables exist before Hibernate looks at them.
+- **How it remembers:** its own table, `flyway_schema_history`, holds one row per script that ran: the version, the description, a **checksum** (a fingerprint of the file) and whether it succeeded.
+- **The golden rule:** never edit a script that already ran. The checksum would change and Flyway would refuse to start. Add a new `V2__...` file instead.
+- **On PostgreSQL, each script runs in a transaction.** If it fails halfway, all of its changes are undone.
+- **How to check it works**, in the startup log:
+  - First run: `Successfully applied 1 migration to schema "public", now at version v1`.
+  - Every later run: `Schema "public" is up to date. No migration necessary.`
+- **Harmless warning:** `Could not transfer metadata ... flyway-community-db-support` (or `MavenFeed`) `... 401`. Flyway's build files list extra download sites that need a login. Maven skips them and uses Maven Central.
+- **Alternative you'll hear about:** Liquibase, which does the same job and also supports XML or YAML changelogs.
 
 ---
 
