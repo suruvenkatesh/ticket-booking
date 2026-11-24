@@ -70,6 +70,22 @@ The rest of this page explains each box.
 - **SQL** is the language for talking to databases: `SELECT * FROM farmer_application WHERE status = 2`.
 - **PostgreSQL** is a free, very popular database used by many MNCs. Other databases you'll hear about are MySQL, Oracle and SQL Server.
 - **In our project:** each microservice gets **its own database**. Services never read each other's tables. They ask each other through APIs or Kafka.
+- **Looking inside: `psql`**, PostgreSQL's own command-line tool. It's already inside the PostgreSQL container, so there's nothing to install.
+  - **Open it** (from the `farmer-onboarding` folder): `docker compose exec postgres psql -U onboarding -d onboarding`. `exec` runs a program inside a running container, `-U` is the user and `-d` is the database. Inside the container, no password is asked.
+  - **The prompt `onboarding=#`:** the database name, and `#` for an admin user (`=>` for a normal one). If it changes to `onboarding-#`, psql is waiting for a `;`.
+  - **Shortcuts** (no `;` needed): `\dt` lists the tables, `\d farmer_application` shows a table's columns and rules, and `\q` quits. If you see `(END)`, press `q`.
+  - **Basic SQL** (ends with `;`). These map to CRUD and to REST:
+
+    | SQL | Does | REST |
+    |---|---|---|
+    | `INSERT INTO t (cols) VALUES (...)` | add a row | POST |
+    | `SELECT cols FROM t WHERE ...` | read rows | GET |
+    | `UPDATE t SET col = ... WHERE ...` | change rows | PUT/PATCH |
+    | `DELETE FROM t WHERE ...` | remove rows | DELETE |
+
+  - ⚠️ `UPDATE` or `DELETE` **without `WHERE`** changes **every row**. Write the `WHERE` first.
+  - **Rules the database enforces (constraints):** `NOT NULL` refuses a row with a missing value. `PRIMARY KEY` means unique and not null, and PostgreSQL builds an **index** for it (a sorted B-tree, like a phone book), so finding a row by id is fast.
+  - **pgAdmin** is the point-and-click version of psql. We'll add it later.
 
 ### 4. Docker: packs software so it runs the same everywhere
 - **The problem:** installing PostgreSQL (or Kafka, or Redis) is different on a Mac, on Windows and on Linux. Versions clash, and "it works on my machine" but not on the server.

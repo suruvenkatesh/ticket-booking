@@ -119,3 +119,55 @@ Any status code means the server is running. If it isn't, you get "connection re
 - **`@NotBlank`:** also rejects text that's only spaces, like `"  "`. It's for `String`s only.
 
 The rules sit on the DTO fields. `@Valid` on the `@RequestBody` parameter tells Spring to check them before calling the method. If a rule fails, Spring throws `MethodArgumentNotValidException` and replies 400, and our method never runs. These annotations come from the Jakarta Validation standard, and Hibernate Validator is the library that checks them.
+
+## Stage 3: Database setup (farmer-onboarding steps 2–5)
+
+Read each answer out loud. Aim for 30–60 seconds, and finish with the example from our project.
+
+### What are Docker images, containers and volumes? Why use Docker Compose locally?
+An image is a packaged piece of software with everything it needs, like `postgres:17-alpine`. A container is a running copy of an image: you can stop, delete and recreate it in seconds. Containers are throwaway, so data goes in a volume, storage that Docker keeps outside the container. It survives `docker compose down`. Compose lists all the containers a project needs in one file, `compose.yaml`, so a new developer runs `docker compose up -d` and gets exactly the same PostgreSQL version as everyone else. In our project, PostgreSQL 17 runs this way, with the named volume `postgres-data`.
+
+### Why did we publish the database port as `127.0.0.1:5432:5432`?
+The format is address, then the port on our machine, then the port inside the container. `127.0.0.1` means only this machine can connect. Without it, Docker listens on every network interface, so anyone on the network, or the internet on a server, could reach the database. On Linux servers, ports that Docker publishes also skip the ufw firewall. So the safe pattern is to bind to `127.0.0.1` and put nginx in front.
+
+### What is JDBC, and what is a JDBC driver?
+JDBC is Java's standard API for relational databases: open a connection, run SQL, read the results. The same Java code works with any database. A driver implements JDBC for one database: it turns JDBC calls into that database's network protocol. We use the PostgreSQL driver with Maven scope `runtime`, because our code only uses the JDBC interfaces, and the driver is needed only when the app runs. Hibernate, Flyway and HikariCP all use JDBC underneath.
+
+### What is a connection pool, and why do we need one?
+Opening a database connection is slow: a network handshake, a login and some setup. A pool opens a few connections in advance, lends one to each request, and takes it back afterwards. Spring Boot uses HikariCP by default, with at most 10 connections. If all 10 are busy, the next request waits, and after 30 seconds by default it fails. So the pool size limits how many requests can use the database at the same time. In our log, `HikariPool-1 - Start completed` showed the pool was ready.
+
+### JPA vs Hibernate vs Spring Data JPA?
+JPA is the specification: a standard set of interfaces and annotations, like `@Entity` and `EntityManager`, for ORM, which maps Java objects to tables. Hibernate is the most popular implementation of JPA: it does the real work and writes the SQL. Spring Data JPA sits on top: you write a repository interface, and Spring generates the code for `save`, `findById` and more, using JPA underneath. In our project, one starter, `spring-boot-starter-data-jpa`, brings all three plus HikariCP.
+
+### What is a Hibernate dialect? What happens if the database is down when the app starts?
+SQL differs a little between databases: data types, paging, functions. The dialect tells Hibernate which flavour to write. Hibernate picks it at startup by asking the database for its name and version. Our log showed `PostgreSQLDialect` and version 17.12. If the database is down, Hibernate can't ask, the `entityManagerFactory` bean fails, and the whole app refuses to start. That's fail fast, which is better than starting and failing on a real user's request. Don't hide it by hard-coding the dialect.
+
+### How do you read a long stack trace?
+Each layer catches the error below it, wraps it and adds its own message, so you get a chain of `Caused by:` sections. Start at the last `Caused by:`, which is the root cause, and read upward to see how it spread. Then find the first line from your own package. In our test with PostgreSQL stopped, the root cause was `java.net.ConnectException: Connection refused`: nothing was listening on port 5432. On top of it came the driver's `PSQLException`, then Hibernate's dialect error, and finally Spring's `BeanCreationException`.
+
+### What is `spring.jpa.open-in-view`, and why do many teams turn it off?
+Spring Boot turns it on by default and logs a warning about it. It keeps the Hibernate session, and its database connection, open for the whole web request, even while the JSON is being written. That makes lazy loading work anywhere, but it holds connections longer, which can use up the pool under load. It also hides extra queries that run while the response is built. Many teams set it to `false` and load what they need in the service layer. We'll turn it off with our first entity.
+
+### Why use database migrations, like Flyway?
+The database structure has to change along with the code, in the same way, on every laptop and on the test and production servers. Flyway does this with numbered SQL files kept in Git, like `V1__create_farmer_application.sql`. At startup, it runs only the files that haven't run on that database yet, in order, and records each one. So database changes get code review and history like any other code, and every environment ends up identical. Spring Boot runs Flyway automatically at startup, after the pool starts and before Hibernate.
+
+### How does Flyway know what to run? What if you edit a migration that already ran?
+It keeps its own table, `flyway_schema_history`, with one row per script that ran: the version, the description, the script name, a checksum and a success flag. At startup it compares the files with that table and runs only the new ones. The checksum is a fingerprint of the file's contents. If someone edits a script that already ran, the checksum no longer matches, validation fails, and the app refuses to start. The rule: never edit a migration that ran; add a new one, like `V2__add_bank_details.sql`. On PostgreSQL, each migration also runs in a transaction, so a failed script leaves no half-done changes.
+
+### Flyway vs Liquibase?
+Both manage database migrations, and both are common in companies. Flyway is simpler: plain SQL files with the version number in the file name. Liquibase uses changelogs written in XML, YAML, JSON or SQL, can describe changes in a database-neutral way, and has rollback built in. Flyway suits a team on one database that wants plain SQL. Liquibase suits teams that support several databases or want generated rollbacks. We chose Flyway.
+
+### UUID or an auto-increment number as the primary key?
+An auto-increment number (1, 2, 3) is small and fast, and new rows go at the end of the index. But the ids are guessable in URLs, and the id exists only after the database saves the row. A UUID can be created in Java before saving, can't be guessed, and stays unique across services and databases, which suits microservices. The costs: 16 bytes instead of 8, and random UUIDs scatter new rows across the index, which can slow down very big tables. Time-ordered UUIDs (version 7) reduce that. Our `farmer_application.id` is a `UUID`.
+
+### `TIMESTAMP` vs `TIMESTAMP WITH TIME ZONE`?
+`TIMESTAMP WITH TIME ZONE` (`timestamptz`) stores an exact moment. PostgreSQL keeps it in UTC and shows it in the session's time zone. Plain `TIMESTAMP` is only a date and a clock time with no zone, so "09:00" is unclear when servers and users are in different time zones. Our `created_at` is `timestamptz`. In psql, a row created at 14:39 India time showed as `09:09...+00`: the same moment, written in UTC. In Java it maps to `Instant` or `OffsetDateTime`.
+
+### What does a primary key give you? What is an index?
+A primary key identifies each row: it must be unique and can't be null. PostgreSQL builds an index for it automatically. We saw `"farmer_application_pkey" PRIMARY KEY, btree (id)`. An index is a sorted structure, by default a B-tree, like a phone book: the database finds one id among millions in a few steps, instead of reading every row. Indexes make reads faster but writes slightly slower, and they use disk, so you add them to columns you search by often.
+
+### Why `NOT NULL` in the database, when Java already validates with `@NotBlank`?
+Defence in depth. Java validation gives the user a clear 400 error. But data can also come from scripts, other code, or a bug that skips validation. The database is the last line of defence: it refuses bad rows wherever they come from. In psql, inserting a row without `farmer_name` failed with "violates not-null constraint". From Java, Spring turns that into a `DataIntegrityViolationException`.
+
+### Basic SQL: how do the commands map to CRUD and REST?
+Create is `INSERT` (REST `POST`), read is `SELECT` (`GET`), update is `UPDATE` (`PUT` or `PATCH`), and delete is `DELETE` (`DELETE`). `WHERE` picks which rows a `SELECT`, `UPDATE` or `DELETE` touches. Always write the `WHERE` first: an `UPDATE` or `DELETE` without it changes every row in the table, which is a classic production accident.
