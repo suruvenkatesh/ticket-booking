@@ -10,4 +10,9 @@ import com.farmonboard.onboarding.domain.FarmerApplication;
 // We get save, findById, findAll, count, deleteById and more for free.
 // No @Repository needed: Spring Data finds every interface that extends JpaRepository.
 public interface FarmerApplicationRepository extends JpaRepository<FarmerApplication, Long> {
+
+    // A derived query: Spring Data writes the SQL from the method's name.
+    // existsBy + AadhaarNumber -> "is there a row whose aadhaar_number equals this?"
+    // The name must match a field of the entity (aadhaarNumber), or the app won't start.
+    boolean existsByAadhaarNumber(String aadhaarNumber);
 }

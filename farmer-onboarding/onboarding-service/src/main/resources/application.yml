@@ -6,8 +6,10 @@ spring:
   # The datasource: where the database is and how to log in.
   # Matches the PostgreSQL container in ../compose.yaml. Laptop-only password;
   # real secrets come from environment variables in a later step.
+  # logServerErrorDetail=false: a PostgreSQL driver option. It keeps the database's error details,
+  # like "Key (aadhaar_number)=(...) already exists", out of exceptions and logs.
   datasource:
-    url: jdbc:postgresql://localhost:5432/onboarding
+    url: jdbc:postgresql://localhost:5432/onboarding?logServerErrorDetail=false
     username: onboarding
     password: onboarding
 

@@ -57,6 +57,10 @@ The rest of this page explains each box.
   - **Beans and dependency injection:** Spring creates objects and hands them to whoever needs them.
   - **Layers:** controller → service → repository.
 - **`application.yml`** is the settings file: the port, the database address, and so on.
+- **Errors, in one place:** a class with `@RestControllerAdvice` handles exceptions for every controller. Each `@ExceptionHandler(X.class)` method turns exception X into an HTTP reply. Our replies use `ProblemDetail`, the standard error format (RFC 9457, content type `application/problem+json`):
+  - our `DuplicateAadhaarException` and the database's `DataIntegrityViolationException` become 409 Conflict
+  - a failed `@Valid` becomes 400, naming the field and the rule
+- **Personal data stays out of replies and logs.** Error messages never contain the Aadhaar number. We don't log SQL values. The datasource URL has `?logServerErrorDetail=false`, so the PostgreSQL driver doesn't copy details like `Key (aadhaar_number)=(...)` into exceptions.
 
 ### 3. A database, and PostgreSQL
 - **What a database is:** permanent, organised storage. Data is kept in **tables**, like Excel sheets:
@@ -142,6 +146,8 @@ Think of a phone call:
   - It's only an interface. At startup Spring Data builds a **proxy** for it, backed by its own class `SimpleJpaRepository`. The log says `Found 1 JPA repository interface`. No `@Repository` annotation is needed.
   - `save()` runs in its own transaction. If the id is `null`, the entity is new, so it calls JPA's `persist` (an INSERT). Otherwise it calls `merge` (an update). A stack trace shows the whole chain: `$Proxy.save` → `TransactionInterceptor` → `SimpleJpaRepository.save` → `SessionImpl.persist`.
   - Database errors come back as **Spring's own exceptions**: a duplicate key becomes `DataIntegrityViolationException`, not PostgreSQL's `PSQLException`. So our code doesn't depend on one database's error classes.
+- **Derived queries:** a repository method like `boolean existsByAadhaarNumber(String aadhaarNumber)` has no code. Spring Data reads the **name** and writes the SQL: `select ... where aadhaar_number=? fetch first ? rows only`. The words after `By` must match an entity field, or the app won't start.
+- **Check-then-act needs a database guard.** Our service checks `existsByAadhaarNumber` before saving, to give a clear error. Under load, many requests can pass the check at the same moment. In our test, 20 parallel requests with one Aadhaar got 12 past the check. The `UNIQUE` rule in the database stopped all 12, so only one application was created.
 - **Seeing the SQL:** `logging.level.org.hibernate.SQL: debug` prints each statement Hibernate runs, like `insert into farmer_application (aadhaar_number,created_at,...) values (?,?,?,?,?)`.
   - The `?` marks are placeholders. The values are sent **separately** from the SQL (a **prepared statement**), so user input can never be run as SQL. That's the standard protection against **SQL injection**.
   - We don't log the values (`org.hibernate.orm.jdbc.bind`): they include Aadhaar numbers.
