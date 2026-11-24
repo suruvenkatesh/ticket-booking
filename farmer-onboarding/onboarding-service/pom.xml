@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- This service's parent is our own farmer-onboarding pom.xml, one folder up.
+         It passes on Spring Boot's versions and our shared settings, like the Java version -->
+    <parent>
+        <groupId>com.farmonboard</groupId>
+        <artifactId>farmer-onboarding</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <!-- groupId and version come from the parent; only the name is new -->
+    <artifactId>onboarding-service</artifactId>
+
+    <dependencies>
+        <!-- Spring MVC, built-in Tomcat and Jackson -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+    </dependencies>
+</project>

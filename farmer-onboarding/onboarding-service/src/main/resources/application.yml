@@ -1,0 +1,8 @@
+# Spring Boot's settings file for this service.
+spring:
+  application:
+    name: onboarding-service
+
+# Each microservice gets its own port, so they can all run on one machine.
+server:
+  port: 8081
