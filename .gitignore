@@ -6,8 +6,8 @@ target/
 *.iml
 .vscode/
 
-# Personal Claude Code notes
-CLAUDE.local.md
+# Personal notes, never committed (CLAUDE.local.md, farmer app requirements, ...)
+*.local.md
 
 # OS / logs
 .DS_Store
