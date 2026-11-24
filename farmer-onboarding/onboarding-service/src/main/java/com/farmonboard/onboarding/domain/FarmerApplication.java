@@ -3,20 +3,24 @@ package com.farmonboard.onboarding.domain;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.time.Instant;
-import java.util.UUID;
 
 // One farmer onboarding application: one row in the farmer_application table.
 @Entity
 @Table(name = "farmer_application")
 public class FarmerApplication {
 
-    // The primary key. We create it in Java, so the id exists before the row is saved.
+    // The primary key: a number PostgreSQL counts up (1, 2, 3...).
+    // It's null until the row is saved; then Hibernate reads back the number the database chose.
+    // Long, not long: null means "not saved yet". A long would start at 0, which looks like a real id.
     @Id
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     // Field names become column names: farmerName -> farmer_name.
     private String farmerName;
@@ -36,16 +40,16 @@ public class FarmerApplication {
     protected FarmerApplication() {
     }
 
-    // Every new application starts as a DRAFT, with a new id and the current time.
+    // Every new application starts as a DRAFT, created now.
+    // No id here: the database gives it one when the row is saved.
     public FarmerApplication(String farmerName, String mobileNumber) {
-        this.id = UUID.randomUUID();
         this.farmerName = farmerName;
         this.mobileNumber = mobileNumber;
         this.status = ApplicationStatus.DRAFT;
         this.createdAt = Instant.now();
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 

@@ -74,6 +74,7 @@ The rest of this page explains each box.
   - **Open it** (from the `farmer-onboarding` folder): `docker compose exec postgres psql -U onboarding -d onboarding`. `exec` runs a program inside a running container, `-U` is the user and `-d` is the database. Inside the container, no password is asked.
   - **The prompt `onboarding=#`:** the database name, and `#` for an admin user (`=>` for a normal one). If it changes to `onboarding-#`, psql is waiting for a `;`.
   - **Shortcuts** (no `;` needed): `\dt` lists the tables, `\d farmer_application` shows a table's columns and rules, and `\q` quits. If you see `(END)`, press `q`.
+  - **Pasting tip:** paste one command at a time. A `\` shortcut reads to the end of its line, so if two lines get glued together you'll see errors like `Did not find any relation named "farmer_applicationSELECT"`.
   - **Basic SQL** (ends with `;`). These map to CRUD and to REST:
 
     | SQL | Does | REST |
@@ -130,6 +131,7 @@ Think of a phone call:
 - **In our project:** it replaces the in-memory repository from ticket-booking. Because of the layers, the controller and service barely notice.
 - **Our first entity, `FarmerApplication`** (in the `domain` package):
   - `@Entity` maps the class to a table, and `@Table(name = "farmer_application")` names it. `@Id` marks the primary key.
+  - The id is a `Long` with `@GeneratedValue(strategy = GenerationType.IDENTITY)`. The column is `BIGINT GENERATED ALWAYS AS IDENTITY`, so PostgreSQL counts 1, 2, 3... The id is `null` until the row is saved. Then Hibernate reads back the number the database chose, the same way `INSERT ... RETURNING id` does in psql. Numbers never come back: if row 1 is deleted, the next row gets the next new number.
   - Field names become column names automatically: `farmerName` becomes `farmer_name`.
   - The status is an enum stored as text with `@Enumerated(EnumType.STRING)`. The JPA default, `ORDINAL`, stores 0, 1, 2..., which breaks if the list order ever changes.
   - The JPA annotations come from `jakarta.persistence`. Before Jakarta EE (Spring Boot 2 and older), it was `javax.persistence`.
